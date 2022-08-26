@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Bootstrap Example</title>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<!-- <div class="container-fluid"> -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark m-0">
+    <a class="navbar-brand btn btn-primary" href="#">{{request.user.first_name}}</a>
+
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+        <div class="navbar-nav">
+          <a class="nav-item nav-link active" href="{% url 'demo:dashboard'%}">{{request.user.email}}<span class="sr-only">(current)</span></a>
+            <a class="nav-item nav-link active" href="{% url 'demo:dashboard'%}">{{request.user.mobile}}<span class="sr-only">(current)</span></a>
+            <a class="nav-item nav-link active" href="{% url 'demo:dashboard'%}">Dashboard<span class="sr-only">(current)</span></a>
+
+        </div>
+    </div>
+
+    {%if user.is_authenticated %}
+
+    <button type="button" class="btn btn-outline-success" data-toggle="modal" data-target="#exampleModalCenter">
+    create Poll
+    </button>&nbsp;&nbsp;
+<!--    <p><a class="btn btn-outline-success" href="">create Poll</a></p> -->
+    <p><a class="btn btn-outline-success btn-danger" href="{% url 'demo:logout' %}" style="margin-top:16px;">logout</a></p>
+    {% endif %}
+</nav>
+<div class="container mt-3">
+    {% block content %}
+
+    {% endblock %}
+</div>
+
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Add Questions</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+            <form method="post">{% csrf_token %}
+                <div class="row">
+
+
+                    <div class="col-lg-12">
+                        <div class="form-group">
+                        <label for="questions">Enter Question</label>
+                        <input type="text" class="form-control" name="question" id="questions" aria-describedby="questionHelp" placeholder="Enter Question">
+<!--                        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>-->
+                        </div>
+
+                        <label for="questions">Enter Answer</label>
+                        <div id="inputFormRow">
+                            <div class="input-group mb-3">
+                                <input type="text" name="title[]" class="form-control m-input" placeholder="Enter title" autocomplete="off">
+                                <div class="input-group-append">
+                                    <button id="removeRow" type="button" class="btn btn-danger">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="newRow"></div>
+                        <button id="addRow" type="button" class="btn btn-info">Add Row</button>
+                    </div>
+
+
+                </div>
+            </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="create_poll">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script type="text/javascript">
+        // add row
+        $("#addRow").click(function () {
+            var html = '';
+            html += '<div id="inputFormRow">';
+            html += '<div class="input-group mb-3">';
+            html += '<input type="text" name="title[]" class="form-control m-input" placeholder="Enter title" autocomplete="off">';
+            html += '<div class="input-group-append">';
+            html += '<button id="removeRow" type="button" class="btn btn-danger">Remove</button>';
+            html += '</div>';
+            html += '</div>';
+
+            $('#newRow').append(html);
+        });
+
+        // remove row
+        $(document).on('click', '#removeRow', function () {
+            $(this).closest('#inputFormRow').remove();
+        });
+
+        $("#create_poll").click(function () {
+            var answers = []
+            $('input[name="title[]"]').each(function(input){
+            var value = $(this).val();
+            answers.push(value)
+            });
+            $.ajax({
+              type: "POST",
+              url: "/question/save/",
+              data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                 question: $("input[name='question']").val(),
+                 answer: answers
+                },
+              success: function(data){
+                location.reload()
+              },
+            });
+        });
+    </script>
+</html>
